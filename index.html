@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Cerrajería Ituzaingo POS</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-light">
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="pantalla-login" class="d-flex justify-content-center align-items-center vh-100 bg-dark">
+        <div class="card p-4 shadow-lg style-login-card" style="max-width: 400px; width: 100%;">
+            <div class="text-center mb-4">
+                <h3 class="fw-bold">🔑 Cerrajería Ituzaingo</h3>
+                <p class="text-muted small">Ingresa tus credenciales para acceder</p>
+            </div>
+            <form id="form-login">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Usuario</label>
+                    <input type="text" id="login-usuario" class="form-control" placeholder="Ej: ituzaingo" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Contraseña</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+                </div>
+                <div id="login-error" class="alert alert-danger p-2 small d-none" role="alert">
+                    Usuario o contraseña incorrectos.
+                </div>
+                <button type="submit" class="btn btn-primary w-100 fw-bold">Iniciar Sesión</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SISTEMA PRINCIPAL -->
+    <div id="pantalla-sistema" class="d-none">
+
+        <!-- NAV PRINCIPAL -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand fw-bold" href="#/pos">🔑 Cerrajería Ituzaingo</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navMenu">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="nav-pos" href="#/pos">🛒 Punto de Venta</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="nav-cierre" href="#/cierre">📊 Cierre de Caja</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="nav-reportes" href="#/reportes">📈 Reportes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="nav-productos" href="#/productos">📦 Catálogo de Productos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="nav-servicios" href="#/servicios">🛵 Servicios</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="nav-ventas" href="#/ventas">🛍️ Ventas</a>
+                        </li>
+                    </ul>
+                    <div class="d-flex align-items-center text-white gap-2">
+                        <button class="btn btn-sm btn-outline-light" id="btn-dia-anterior">◀</button>
+                        <span id="fecha-display" class="fw-bold small px-2"></span>
+                        <button class="btn btn-sm btn-outline-light" id="btn-dia-siguiente">▶</button>
+                        <button class="btn btn-sm btn-danger ms-3" id="btn-logout" title="Cerrar Sesión">🚪 Salir</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- CONTENEDOR DE VISTAS -->
+        <div class="container-fluid px-3">
+
+            <!-- ================= VISTA 1: PUNTO DE VENTA (POS) ================= -->
+            <section id="vista-pos" class="vista-seccion">
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-white border rounded shadow-sm d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted d-block">Ventas del Día</small>
+                                <span class="fs-4 fw-bold text-success" id="kpi-ventas">$0</span>
+                            </div>
+                            <span class="fs-2">💰</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-white border rounded shadow-sm d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted d-block">Servicios Domicilio</small>
+                                <span class="fs-4 fw-bold text-primary" id="kpi-servicios">0 Pendientes</span>
+                            </div>
+                            <span class="fs-2">🛵</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-white border rounded shadow-sm d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted d-block">Alertas de Stock</small>
+                                <span class="fs-4 fw-bold text-danger" id="kpi-stock">0 Críticos</span>
+                            </div>
+                            <div class="d-flex flex-column align-items-end gap-1">
+                                <span class="fs-2">⚠️</span>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#modalAlertasStock">Ver alertas</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-lg-7">
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold">🛒 Venta Directa de Productos</h6>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button class="btn btn-sm btn-outline-light text-white border-white py-0 px-2" id="btn-vaciar-comanda" title="Vaciar selección">🗑️ Vaciar</button>
+                                    <span class="badge bg-light text-dark fs-6" id="total-comanda-actual">$0</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-2">
+                                <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                    <table class="table table-sm align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Categoría</th>
+                                                <th>Detalle</th>
+                                                <th style="width: 80px;">Cant.</th>
+                                                <th>Precio</th>
+                                                <th>Subtotal</th>
+                                                <th class="text-center">Acción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="cuerpo-tabla"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-light d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="select-medio-pago" class="small fw-bold mb-0">Pago:</label>
+                                    <select id="select-medio-pago" class="form-select form-select-sm" style="width: 150px;">
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Transferencia">Transferencia</option>
+                                        <option value="Débito">Débito</option>
+                                        <option value="Cuenta Corriente">Cuenta Corriente</option>
+                                    </select>
+                                    <label for="input-vendedor-producto" class="small fw-bold mb-0 ms-2">Vendedor:</label>
+                                    <input type="text" id="input-vendedor-producto" class="form-control form-control-sm" style="width: 130px;" placeholder="Ej: Santino" required>
+                                </div>
+                                <button class="btn btn-success btn-sm fw-bold px-3" id="btn-confirmar-venta">✔ Registrar Venta</button>
+                            </div>
+                        </div>
+
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold">📦 Añadir Productos</h6>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownCategorias" data-bs-toggle="dropdown">
+                                        🔍 Filtrar Categoría
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item btn-filtro" data-categoria="Todas" href="#/pos">Todas</a></li>
+                                        <li><a class="dropdown-item btn-filtro" data-categoria="Cerradura" href="#/pos">Cerraduras</a></li>
+                                        <li><a class="dropdown-item btn-filtro" data-categoria="Candado" href="#/pos">Candados</a></li>
+                                        <li><a class="dropdown-item btn-filtro" data-categoria="Llave" href="#/pos">Llaves</a></li>
+                                        <li><a class="dropdown-item btn-filtro" data-categoria="Cerrojo" href="#/pos">Cerrojos</a></li>
+                                        <li><a class="dropdown-item btn-filtro" data-categoria="Otros" href="#/pos">Otros</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body p-2">
+                                <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                                    <table class="table table-hover table-sm align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Producto</th>
+                                                <th>Detalle</th>
+                                                <th>Stock</th>
+                                                <th>Precio</th>
+                                                <th class="text-center">Agregar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="lista-tabla-productos"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-5">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold">🔑 Comandas - Copias de Llaves</h6>
+                                <span class="badge bg-primary" id="total-comandas-dia">0 Copias</span>
+                            </div>
+                            <div class="card-body p-2" style="max-height: 500px; overflow-y: auto;">
+                                <div id="lista-comandas"></div>
+                            </div>
+                            <div class="card-footer bg-white d-flex gap-2">
+                                <button class="btn btn-outline-primary btn-sm flex-fill fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevaComandaLlave">🔑 Nueva Comanda</button>
+                                <button class="btn btn-outline-primary btn-sm flex-fill fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoServicio">🛵 Servicio</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= VISTA 2: CIERRE DE CAJA ================= -->
+            <section id="vista-cierre" class="vista-seccion" style="display: none;">
+                <div class="card shadow-sm mx-auto" style="max-width: 800px;">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold fs-6">📊 Resumen de Ventas y Cierre de Caja</h5>
+                        <button type="button" class="btn btn-sm btn-outline-light" onclick="window.print()">🖨️ Imprimir</button>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">Resumen del día: <strong id="fecha-cierre-caja" class="text-dark"></strong></p>
+                        <div class="row g-2 mb-4">
+                            <div class="col-4">
+                                <div class="p-3 bg-light rounded text-center border">
+                                    <small class="text-muted d-block fs-7">Ingresos del Día</small>
+                                    <span class="fw-bold fs-5 text-success" id="monto-ingresos">$0</span>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 bg-light rounded text-center border">
+                                    <small class="text-muted d-block fs-7">Egresos del Día</small>
+                                    <span class="fw-bold fs-5 text-danger" id="monto-egresos">$0</span>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 bg-primary text-white rounded text-center">
+                                    <small class="d-block opacity-75 fs-7">Total en Caja (Día)</small>
+                                    <span class="fw-bold fs-5" id="monto-total-cierre">$0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-secondary mb-2 fs-7 text-uppercase border-bottom pb-1">Ingresos por Medio de Pago</h6>
+                                <ul class="list-group list-group-flush" id="lista-cierre-caja"></ul>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex justify-content-between align-items-center border-bottom pb-1 mb-2">
+                                    <h6 class="fw-bold text-secondary mb-0 fs-7 text-uppercase">Egresos del Día</h6>
+                                    <button class="btn btn-sm btn-outline-danger py-0 px-2 fs-7 fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoEgreso">➖ Registrar Egreso</button>
+                                </div>
+                                <ul class="list-group list-group-flush" id="lista-egresos-caja"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= VISTA 3: REPORTE MENSUAL ================= -->
+            <section id="vista-reportes" class="vista-seccion" style="display: none;">
+                <div class="card shadow-sm mx-auto" style="max-width: 900px;">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+                        <h5 class="mb-0 fw-bold fs-6">📈 Reporte Mensual de Ventas</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="month" id="input-mes-reporte" class="form-control form-control-sm">
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded text-center border">
+                                    <small class="text-muted d-block">Facturación Total del Mes</small>
+                                    <span class="fw-bold fs-4 text-success" id="reporte-total-mes">$0</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded text-center border">
+                                    <small class="text-muted d-block">Total de Operaciones</small>
+                                    <span class="fw-bold fs-4 text-primary" id="reporte-cant-operaciones">0</span>
+                                    <div class="mt-1 small text-muted" id="reporte-detalle-operaciones">
+                                        <!-- Desglose dinámico de operaciones -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-secondary mb-2 fs-7 text-uppercase border-bottom pb-1">Recaudación por Medio de Pago</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Medio de Pago</th>
+                                                <th class="text-end">Monto Total</th>
+                                                <th class="text-center">Porcentaje</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabla-reporte-pagos"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-secondary mb-2 fs-7 text-uppercase border-bottom pb-1">🏆 Top 5 Productos Más Vendidos</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Producto / Ítem</th>
+                                                <th class="text-center">Cantidad</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabla-reporte-top5">
+                                            <tr><td colspan="2" class="text-center text-muted small">Sin datos en este mes</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= VISTA 4: CATÁLOGO ================= -->
+            <section id="vista-productos" class="vista-seccion" style="display: none;">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <h5 class="mb-0 fw-bold fs-6">📦 Catálogo y Control de Stock</h5>
+                            <button class="btn btn-sm btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoProducto">➕ Nuevo Producto</button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Categoría</th>
+                                        <th>Nombre / Modelo</th>
+                                        <th>Stock Actual</th>
+                                        <th>Precio</th>
+                                        <th class="text-center" style="width: 250px;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-catalogo-completo"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= VISTA 5: SERVICIOS ================= -->
+            <section id="vista-servicios" class="vista-seccion" style="display: none;">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <h5 class="mb-0 fw-bold fs-6">🛵 Registro y Control de Servicios</h5>
+                            <button class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoServicio">➕ Nuevo Servicio</button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID Servicio</th>
+                                        <th>Cliente / Tel.</th>
+                                        <th>Dirección</th>
+                                        <th>Descripción del Trabajo</th>
+                                        <th>Estado</th>
+                                        <th>Monto Total</th>
+                                        <th class="text-center" style="width: 260px;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-servicios-completa"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= VISTA 6: HISTORIAL VENTAS ================= -->
+            <section id="vista-ventas" class="vista-seccion" style="display: none;">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                        <div>
+                            <h5 class="mb-0 fw-bold fs-6">🛍️ Historial General de Ventas</h5>
+                            <small class="text-muted">Incluye ventas directas, comandas de llaves y servicios realizados</small>
+                        </div>
+                        <span class="badge bg-success fs-6" id="badge-total-ventas-dia">Total Día: $0</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID Venta</th>
+                                        <th>Tipo / Ref.</th>
+                                        <th>Vendedor / Operador</th>
+                                        <th>Cliente</th>
+                                        <th>Medio de Pago</th>
+                                        <th>Total</th>
+                                        <th class="text-center" style="width: 200px;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-ventas-productos-completa"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- MODALES -->
+    <div class="modal fade" id="modalNuevaComandaLlave" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <form id="form-nueva-comanda-llave">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title fs-6 fw-bold">🔑 Nueva Comanda (Copias & Productos Extra)</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1 fw-bold">N° Comanda (Manual)</label>
+                                <input type="number" class="form-control form-control-sm" id="input-llave-num" required placeholder="Ej: 1045">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1 fw-bold">Realizado Por (Operador)</label>
+                                <input type="text" class="form-control form-control-sm" id="input-llave-operador" required placeholder="Ej: Santino">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1 fw-bold">Cliente (Opcional)</label>
+                                <input type="text" class="form-control form-control-sm" id="input-llave-cliente" placeholder="Cliente General">
+                            </div>
+                        </div>
+
+                        <hr class="my-2">
+
+                        <div class="row g-3">
+                            <div class="col-md-6 border-end">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label small fw-bold text-primary mb-0">📦 Seleccionar del Catálogo</label>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownCategoriasComanda" data-bs-toggle="dropdown">
+                                            🔍 Categoria
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item btn-filtro-comanda" data-categoria="Todas" href="#">Todas</a></li>
+                                            <li><a class="dropdown-item btn-filtro-comanda" data-categoria="Llave" href="#">Llaves</a></li>
+                                            <li><a class="dropdown-item btn-filtro-comanda" data-categoria="Cerradura" href="#">Cerraduras</a></li>
+                                            <li><a class="dropdown-item btn-filtro-comanda" data-categoria="Candado" href="#">Candados</a></li>
+                                            <li><a class="dropdown-item btn-filtro-comanda" data-categoria="Cerrojo" href="#">Cerrojos</a></li>
+                                            <li><a class="dropdown-item btn-filtro-comanda" data-categoria="Otros" href="#">Otros</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="table-responsive border rounded" style="max-height: 220px; overflow-y: auto;">
+                                    <table class="table table-hover table-sm align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Producto</th>
+                                                <th>Stock</th>
+                                                <th>Precio</th>
+                                                <th class="text-center">Añadir</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabla-catalogo-comanda"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-primary mb-2">📋 Ítems en esta Comanda</label>
+                                <div class="table-responsive border rounded mb-3" style="max-height: 220px; overflow-y: auto;">
+                                    <table class="table table-sm align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Producto</th>
+                                                <th>Cant.</th>
+                                                <th>Precio</th>
+                                                <th>Subtotal</th>
+                                                <th class="text-center">Acción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabla-comanda-items">
+                                            <tr><td colspan="5" class="text-center text-muted small">No hay ítems en esta comanda.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 align-items-center bg-white p-2 border rounded mt-2">
+                            <div class="col-md-6 d-flex align-items-center gap-2">
+                                <label class="form-label small mb-0 fw-bold">Medio de Pago:</label>
+                                <select class="form-select form-select-sm" id="input-llave-pago">
+                                    <option value="Efectivo">Efectivo</option>
+                                    <option value="Transferencia">Transferencia</option>
+                                    <option value="Débito">Débito</option>
+                                    <option value="Cuenta Corriente">Cuenta Corriente</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <span class="fs-6 text-muted">Total Automático: </span>
+                                <span class="fs-5 fw-bold text-success" id="total-comanda-modal">$0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary btn-sm fw-bold">Guardar Comanda</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVO SERVICIO -->
+    <div class="modal fade" id="modalNuevoServicio" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <form id="form-nuevo-servicio">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title fs-6 fw-bold">🛵 Registrar Trabajo / Servicio</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label small mb-1 fw-bold">Cliente</label>
+                                <input type="text" class="form-control form-control-sm" id="serv-cliente" placeholder="Ej: Juan Pérez" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small mb-1 fw-bold">Teléfono</label>
+                                <input type="text" class="form-control form-control-sm" id="serv-telefono" placeholder="Ej: 11 2345-6789">
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small mb-1 fw-bold">Dirección del Servicio</label>
+                            <input type="text" class="form-control form-control-sm" id="serv-direccion" placeholder="Ej: Av. Rivadavia 1234" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small mb-1 fw-bold">Descripción de Mano de Obra</label>
+                            <input type="text" class="form-control form-control-sm" id="serv-descripcion" placeholder="Ej: Cambio de combinación puerta principal" required>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1 fw-bold">Mano de Obra ($)</label>
+                                <input type="number" class="form-control form-control-sm" id="serv-monto-mo" value="0" min="0" required placeholder="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1 fw-bold">Medio de Pago</label>
+                                <select class="form-select form-select-sm" id="serv-pago">
+                                    <option value="Efectivo">Efectivo</option>
+                                    <option value="Transferencia">Transferencia</option>
+                                    <option value="Débito">Débito</option>
+                                    <option value="Cuenta Corriente">Cuenta Corriente</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1 fw-bold">Estado Inicial</label>
+                                <select class="form-select form-select-sm" id="serv-estado">
+                                    <option value="Pendiente">🟡 Pendiente</option>
+                                    <option value="Completado">🟢 Completado</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="my-2">
+
+                        <div class="row g-3">
+                            <div class="col-md-6 border-end">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label small fw-bold text-primary mb-0">📦 Añadir Productos / Repuestos</label>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownCategoriasServicio" data-bs-toggle="dropdown">
+                                            🔍 Categoria
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item btn-filtro-servicio" data-categoria="Todas" href="#">Todas</a></li>
+                                            <li><a class="dropdown-item btn-filtro-servicio" data-categoria="Cerradura" href="#">Cerraduras</a></li>
+                                            <li><a class="dropdown-item btn-filtro-servicio" data-categoria="Llave" href="#">Llaves</a></li>
+                                            <li><a class="dropdown-item btn-filtro-servicio" data-categoria="Candado" href="#">Candados</a></li>
+                                            <li><a class="dropdown-item btn-filtro-servicio" data-categoria="Cerrojo" href="#">Cerrojos</a></li>
+                                            <li><a class="dropdown-item btn-filtro-servicio" data-categoria="Otros" href="#">Otros</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="table-responsive border rounded" style="max-height: 180px; overflow-y: auto;">
+                                    <table class="table table-hover table-sm align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Producto</th>
+                                                <th>Stock</th>
+                                                <th>Precio</th>
+                                                <th class="text-center">Añadir</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabla-catalogo-servicio"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-primary mb-2">📋 Repuestos Adjuntos</label>
+                                <div class="table-responsive border rounded mb-2" style="max-height: 180px; overflow-y: auto;">
+                                    <table class="table table-sm align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Producto</th>
+                                                <th>Cant.</th>
+                                                <th>Precio</th>
+                                                <th>Subtotal</th>
+                                                <th class="text-center">Acción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabla-servicio-items">
+                                            <tr><td colspan="5" class="text-center text-muted small">Sin repuestos adjuntos.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-2 border rounded text-end mt-2">
+                            <span class="fs-6 text-muted">Mano de Obra + Repuestos = Total: </span>
+                            <span class="fs-5 fw-bold text-success" id="total-servicio-modal">$0</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary btn-sm fw-bold">Guardar Servicio</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR SERVICIO -->
+    <div class="modal fade" id="modalEditarServicio" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="form-editar-servicio">
+                    <div class="modal-header bg-secondary text-white">
+                        <h5 class="modal-title fs-6 fw-bold">✏️ Editar Servicio</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="edit-serv-id">
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label small mb-1 fw-bold">Cliente</label>
+                                <input type="text" class="form-control form-control-sm" id="edit-serv-cliente" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small mb-1 fw-bold">Teléfono</label>
+                                <input type="text" class="form-control form-control-sm" id="edit-serv-telefono">
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small mb-1 fw-bold">Dirección</label>
+                            <input type="text" class="form-control form-control-sm" id="edit-serv-direccion" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small mb-1 fw-bold">Descripción del Trabajo</label>
+                            <input type="text" class="form-control form-control-sm" id="edit-serv-descripcion" required>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label small mb-1 fw-bold">Mano de Obra ($)</label>
+                                <input type="number" class="form-control form-control-sm" id="edit-serv-mo" required min="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small mb-1 fw-bold">Medio de Pago</label>
+                                <select class="form-select form-select-sm" id="edit-serv-pago">
+                                    <option value="Efectivo">Efectivo</option>
+                                    <option value="Transferencia">Transferencia</option>
+                                    <option value="Débito">Débito</option>
+                                    <option value="Cuenta Corriente">Cuenta Corriente</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small mb-1 fw-bold">Estado</label>
+                            <select class="form-select form-select-sm" id="edit-serv-estado">
+                                <option value="Pendiente">🟡 Pendiente</option>
+                                <option value="Completado">🟢 Completado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary btn-sm fw-bold">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DETALLE GENERAL -->
+    <div class="modal fade" id="modalDetalleGeneral" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white py-2">
+                    <h6 class="modal-title mb-0 fw-bold" id="modal-detalle-titulo">Detalle del Registro</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3 small" id="modal-detalle-body"></div>
+                <div class="modal-footer py-1">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EGRESO -->
+    <div class="modal fade" id="modalNuevoEgreso" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <form id="form-nuevo-egreso">
+                    <div class="modal-header bg-danger text-white py-2">
+                        <h6 class="modal-title mb-0 fw-bold">💸 Registrar Egreso / Gasto</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-2">
+                            <label class="form-label small mb-1 fw-bold">Concepto / Motivo</label>
+                            <input type="text" class="form-control form-control-sm" id="input-egreso-concepto" required placeholder="Ej: Pago flete o insumos">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small mb-1 fw-bold">Monto ($)</label>
+                            <input type="number" class="form-control form-control-sm" id="input-egreso-monto" required min="1" placeholder="Ej: 2500">
+                        </div>
+                    </div>
+                    <div class="modal-footer py-1">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-sm btn-danger fw-bold">Guardar Egreso</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVO PRODUCTO -->
+    <div class="modal fade" id="modalNuevoProducto" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="form-nuevo-producto">
+                    <div class="modal-header bg-dark text-white">
+                        <h5 class="modal-title fs-6 fw-bold">📦 Nuevo Producto</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-2">
+                            <label class="form-label small mb-1 fw-bold">Categoría</label>
+                            <select class="form-select form-select-sm" id="prod-categoria">
+                                <option value="Cerradura">Cerradura</option>
+                                <option value="Candado">Candado</option>
+                                <option value="Llave">Llave</option>
+                                <option value="Cerrojo">Cerrojo</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small mb-1 fw-bold">Nombre / Detalle</label>
+                            <input type="text" class="form-control form-control-sm" id="prod-nombre" required placeholder="Ej: Caja Fuerte Mediana / Spray Lubricante">
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <label class="form-label small mb-1 fw-bold">Precio ($)</label>
+                                <input type="number" class="form-control form-control-sm" id="prod-precio" required min="0">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label small mb-1 fw-bold">Stock Inicial</label>
+                                <input type="number" class="form-control form-control-sm" id="prod-stock" required min="0">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label small mb-1 fw-bold">Mínimo</label>
+                                <input type="number" class="form-control form-control-sm" id="prod-minimo" required min="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success btn-sm fw-bold">Guardar Producto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR PRODUCTO -->
+    <div class="modal fade" id="modalEditarProducto" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="form-editar-producto">
+                    <div class="modal-header bg-secondary text-white">
+                        <h5 class="modal-title fs-6 fw-bold">✏️ Editar Producto</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="edit-prod-id">
+                        <div class="mb-2">
+                            <label class="form-label small mb-1 fw-bold">Categoría</label>
+                            <select class="form-select form-select-sm" id="edit-prod-categoria">
+                                <option value="Cerradura">Cerradura</option>
+                                <option value="Candado">Candado</option>
+                                <option value="Llave">Llave</option>
+                                <option value="Cerrojo">Cerrojo</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small mb-1 fw-bold">Nombre / Detalle</label>
+                            <input type="text" class="form-control form-control-sm" id="edit-prod-nombre" required>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <label class="form-label small mb-1 fw-bold">Precio ($)</label>
+                                <input type="number" class="form-control form-control-sm" id="edit-prod-precio" required min="0">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label small mb-1 fw-bold">Stock Actual</label>
+                                <input type="number" class="form-control form-control-sm" id="edit-prod-stock" required min="0">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label small mb-1 fw-bold">Mínimo</label>
+                                <input type="number" class="form-control form-control-sm" id="edit-prod-minimo" required min="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary btn-sm fw-bold">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AJUSTAR STOCK -->
+    <div class="modal fade" id="modalAjustarStock" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <form id="form-ajustar-stock">
+                    <div class="modal-header bg-primary text-white py-2">
+                        <h6 class="modal-title mb-0 fw-bold">📦 Entrada / Ajuste de Stock</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="stock-prod-id">
+                        <p class="mb-1 small">Producto: <strong id="stock-prod-nombre"></strong></p>
+                        <p class="mb-3 small">Stock Actual: <span class="badge bg-secondary" id="stock-prod-actual">0</span></p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small mb-1 fw-bold">Cantidad a ingresar / modificar:</label>
+                            <input type="number" class="form-control form-control-sm" id="input-cantidad-stock" placeholder="Ej: 10 o -2" required>
+                            <div class="form-text fs-7">Usa números positivos para ingresos y negativos para descontar.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer py-1">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-sm btn-primary fw-bold">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ALERTAS -->
+    <div class="modal fade" id="modalAlertasStock" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white py-2">
+                    <h6 class="modal-title mb-0 fw-bold">⚠️ Productos con Stock Crítico / Bajo</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Categoría</th>
+                                    <th>Producto</th>
+                                    <th>Stock Actual</th>
+                                    <th>Mínimo</th>
+                                    <th class="text-center">Acción rápida</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-modal-alertas"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer py-1">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
