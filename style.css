@@ -1,15 +1,138 @@
+:root {
+    --ci-primary: #0d6efd;
+    --ci-dark: #212529;
+}
+
 body {
     font-size: 0.9rem;
+}
+
+[data-bs-theme="light"] body {
+    background-color: #f4f6f9;
+}
+
+[data-bs-theme="dark"] body {
+    background-color: #1a1d23;
 }
 
 .fs-7 {
     font-size: 0.75rem;
 }
 
+.fw-semibold {
+    font-weight: 600;
+}
+
+/* ---- LOGIN ---- */
+.login-bg {
+    background: linear-gradient(135deg, #1a1d23 0%, #2c3142 100%);
+}
+
+.login-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--ci-primary), #0a58ca);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.75rem;
+    box-shadow: 0 8px 24px rgba(13, 110, 253, 0.35);
+}
+
+.style-login-card {
+    border-radius: 12px;
+    border: none;
+}
+
+/* ---- VISTAS ---- */
 .vista-seccion {
     transition: opacity 0.2s ease-in-out;
 }
 
+/* ---- KPI CARDS ---- */
+.kpi-card {
+    border-radius: 10px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 .6rem 1rem rgba(0,0,0,.08) !important;
+}
+
+/* ---- NAV ---- */
+.navbar-brand i {
+    line-height: 1;
+}
+
+.nav-link {
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 6px;
+    padding-left: 0.6rem !important;
+    padding-right: 0.6rem !important;
+}
+
+.nav-link.active {
+    background-color: rgba(255,255,255,0.12);
+}
+
+/* ---- CARDS ---- */
+.card {
+    border-radius: 10px;
+}
+
+[data-bs-theme="light"] .card {
+    border-color: #e6e8ec;
+}
+
+[data-bs-theme="light"] .card-header {
+    border-bottom: 1px solid #e6e8ec;
+}
+
+/* ---- TABLAS ---- */
+.table > :not(caption) > * > * {
+    padding: 0.55rem 0.6rem;
+}
+
+.table thead th {
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+[data-bs-theme="light"] .table-light th {
+    background-color: #f8f9fb;
+    border-color: #e6e8ec;
+}
+
+/* Bootstrap table-light stays legible in dark mode */
+[data-bs-theme="dark"] .table-light {
+    --bs-table-bg: #2b3036;
+    --bs-table-color: #dfe3e8;
+    border-color: #3a4047;
+}
+[data-bs-theme="dark"] .table-light th {
+    background-color: #2b3036;
+    border-color: #3a4047;
+    color: #dfe3e8;
+}
+
+[data-bs-theme="dark"] .table-danger {
+    --bs-table-bg: rgba(220, 53, 69, 0.15);
+}
+
+/* ---- BADGES ---- */
+.badge {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+/* ---- COMANDAS ---- */
 .item-comanda-card {
     transition: transform 0.1s ease;
 }
@@ -18,6 +141,47 @@ body {
     transform: translateY(-2px);
 }
 
-.style-login-card {
-    border-radius: 12px;
+/* En dark mode, las tarjetas de comanda generadas con bg-white deben adaptarse */
+[data-bs-theme="dark"] .list-group-item.bg-white {
+    background-color: var(--bs-body-bg) !important;
+    color: var(--bs-body-color);
+    border-color: var(--bs-border-color) !important;
+}
+
+/* ---- BOTONES ---- */
+.btn .bi {
+    vertical-align: -0.125em;
+}
+
+/* ---- SCROLLBAR sutil ---- */
+.table-responsive::-webkit-scrollbar,
+.card-body::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.table-responsive::-webkit-scrollbar-thumb,
+.card-body::-webkit-scrollbar-thumb {
+    background: #c4c9d2;
+    border-radius: 4px;
+}
+.table-responsive::-webkit-scrollbar-track,
+.card-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+[data-bs-theme="dark"] .table-responsive::-webkit-scrollbar-thumb,
+[data-bs-theme="dark"] .card-body::-webkit-scrollbar-thumb {
+    background: #495057;
+}
+
+/* ---- TRANSICIÓN DE TEMA ---- */
+body, .card, .modal-content, .form-control, .form-select, .list-group-item {
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+/* ---- PRINT ---- */
+@media print {
+    .navbar, .btn, #btn-logout, .card-footer, #btn-toggle-theme { display: none !important; }
+    .card { border: 1px solid #000 !important; box-shadow: none !important; }
+    body { background: #fff !important; }
 }
